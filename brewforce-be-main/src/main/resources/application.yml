@@ -1,0 +1,26 @@
+spring:
+  web:
+    resources:
+      add-mappings: false
+  application:
+    name: brewforce
+  main:
+    allow-circular-references: true
+  profiles:
+    active: 'dev'
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+server:
+  port: 8081
+brewforce:
+  app:
+    frontendUrl: "https://kelompok-7-brewforce-fe.pkpl.cs.ui.ac.id"
+    jwtSecret: "${JWT_SECRET_KEY}"
+    jwtExpirationMs: 86400000

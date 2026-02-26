@@ -1,0 +1,10 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: brewforce
+  datasource:
+    url: ${DATABASE_URL_DEV}
+    username: ${DEV_USERNAME}
+    password: ${DEV_PASSWORD}
+    driver-class-name: org.postgresql.Driver

@@ -1,0 +1,122 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.brewforce'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    seleniumJavaVersion = '4.14.1'
+    seleniumJupiterVersion = '5.0.1'
+    webdrivermanagerVersion = '5.6.3'
+    // Force consistent JUnit version
+    set('junit-jupiter.version', '5.9.1')
+}
+
+configurations.all {
+    // Ensure consistent JUnit versions
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'org.junit.jupiter' || 
+            details.requested.group == 'org.junit.platform') {
+            details.useVersion details.requested.group == 'org.junit.jupiter' ? '5.9.1' : '1.9.1'
+        }
+    }
+}
+
+dependencies {
+    // Spring Boot dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+   
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+   
+    // Database
+    runtimeOnly 'org.postgresql:postgresql'
+   
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+   
+    // XML and JSON
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
+    implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+   
+    // Utils
+    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+    implementation 'io.projectreactor.netty:reactor-netty-http'
+    implementation ('com.github.javafaker:javafaker:1.0.2') {
+        exclude group: 'org.yaml', module: 'snakeyaml'
+    }
+   
+    // Test dependencies - Using Spring Boot's managed versions
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    
+    // JUnit - Let Spring Boot manage versions
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    
+    // Mockito
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+    testImplementation 'org.mockito:mockito-core:5.3.1'
+   
+    // Selenium test dependencies (if needed)
+    testImplementation "org.seleniumhq.selenium:selenium-java:${seleniumJavaVersion}"
+    testImplementation "io.github.bonigarcia:selenium-jupiter:${seleniumJupiterVersion}"
+    testImplementation "io.github.bonigarcia:webdrivermanager:${webdrivermanagerVersion}"
+   
+    // Development tools
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    filter {
+        excludeTestsMatching '*FunctionalTest'
+    }
+    finalizedBy tasks.jacocoTestReport
+}
+
+tasks.register('unitTest', Test) {
+    description = 'Runs unit tests.'
+    group = 'verification'
+    useJUnitPlatform()
+    filter {
+        excludeTestsMatching '*FunctionalTest'
+    }
+}
+
+tasks.register('functionalTest', Test) {
+    description = 'Runs functional tests.'
+    group = 'verification'
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching '*FunctionalTest'
+    }
+}
+
+tasks.jacocoTestReport {
+    dependsOn tasks.test
+    reports {
+        html.required = true
+        xml.required = true
+    }
+}
